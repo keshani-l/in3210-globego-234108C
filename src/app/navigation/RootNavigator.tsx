@@ -8,7 +8,7 @@ import { ActivityIndicator, AppState, Pressable, StyleSheet, Text, View } from '
 import { LoginScreen } from '../../features/auth/LoginScreen';
 import { RegistrationScreen } from '../../features/auth/RegistrationScreen';
 import { endSession, restoreSession } from '../../features/auth/sessionActions';
-import { CountryDetailsScreen } from '../../features/countries/CountryScreens';
+import { CountryDetailsScreen } from '../../features/countries/CountryDetailsScreen';
 import { HomeScreen } from '../../features/countries/HomeScreen';
 import { FavouritesScreen } from '../../features/favourites/FavouritesScreen';
 import { ProfileScreen } from '../../features/profile/ProfileScreen';
