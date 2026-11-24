@@ -20,6 +20,7 @@ export const authApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: 'https://dummyjson.com/',
     credentials: 'omit',
+    cache: 'no-store',
     timeout: 15000,
   }),
   endpoints: (build) => ({

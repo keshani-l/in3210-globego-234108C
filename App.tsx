@@ -1,11 +1,17 @@
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
+import { Provider } from 'react-redux';
 
-import { WelcomeScreen } from './src/features/welcome/WelcomeScreen';
+import { RootNavigator } from './src/app/navigation/RootNavigator';
+import { store } from './src/app/store';
 
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <WelcomeScreen />
+    <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+      <StatusBar style="dark" />
+      <Provider store={store}>
+        <RootNavigator />
+      </Provider>
     </SafeAreaProvider>
   );
 }

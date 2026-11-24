@@ -16,9 +16,12 @@ jest.mock('expo-secure-store', () => ({
 }));
 
 const user = { id: 1, firstName: 'Emily', lastName: 'Johnson', username: 'emilys', email: 'demo@example.com' };
-const makeToken = (exp: number) => `eyJhbGciOiJIUzI1NiJ9.${Buffer.from(JSON.stringify({ exp })).toString('base64url')}.signature`;
+function makeToken(exp: number) {
+  const payload = btoa(JSON.stringify({ exp })).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return `eyJhbGciOiJIUzI1NiJ9.${payload}.signature`;
+}
 
-beforeEach(async () => {
+beforeEach(() => {
   Platform.OS = 'android';
   jest.resetAllMocks();
   jest.mocked(SecureStore.getItemAsync).mockResolvedValue(null);
@@ -52,6 +55,12 @@ describe('session storage', () => {
     expect(SecureStore.deleteItemAsync).toHaveBeenCalledTimes(1);
   });
 
+  test('discards a native record with an invalid token', async () => {
+    jest.mocked(SecureStore.getItemAsync).mockResolvedValue(JSON.stringify({ user, accessToken: 'invalid' }));
+    await expect(readSession()).resolves.toBeNull();
+    expect(SecureStore.deleteItemAsync).toHaveBeenCalledTimes(1);
+  });
+
   test('logout removes secure data and resets auth state and API cache', async () => {
     jest.mocked(SecureStore.getItemAsync).mockResolvedValue(JSON.stringify({ user, accessToken: makeToken(Math.floor(Date.now() / 1000) + 60) }));
     await store.dispatch(restoreSession());
@@ -73,5 +82,15 @@ describe('session storage', () => {
     expect(SecureStore.getItemAsync).not.toHaveBeenCalled();
     expect(SecureStore.setItemAsync).not.toHaveBeenCalled();
     expect(SecureStore.deleteItemAsync).not.toHaveBeenCalled();
+  });
+
+  test('reports a native logout failure and allows a retry', async () => {
+    jest.mocked(SecureStore.getItemAsync).mockResolvedValue(JSON.stringify({ user, accessToken: makeToken(Math.floor(Date.now() / 1000) + 60) }));
+    await store.dispatch(restoreSession());
+    jest.mocked(SecureStore.deleteItemAsync).mockRejectedValueOnce(new Error('Secure storage unavailable'));
+    await expect(store.dispatch(endSession('logout'))).rejects.toThrow('Secure storage unavailable');
+    expect(store.getState().auth.status).toBe('signedIn');
+    await store.dispatch(endSession('logout'));
+    expect(store.getState().auth.status).toBe('signedOut');
   });
 });

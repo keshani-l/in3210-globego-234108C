@@ -20,6 +20,7 @@ export function Button({ label, onPress, icon, busy = false, kind = 'primary' }:
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={label}
       accessibilityState={{ busy, disabled: busy }}
       disabled={busy}
       onPress={onPress}
