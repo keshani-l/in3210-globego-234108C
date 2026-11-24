@@ -13,3 +13,9 @@ Codex ran TypeScript and ESLint, started Metro, verified the welcome screen in C
 Codex implemented the Login and Registration screens, Zod validation, DummyJSON requests through RTK Query, and Redux session state. It added SecureStore persistence on native platforms, in-memory web sessions, typed React Navigation flows, and the Profile sign-out action. Codex also updated the README with setup instructions, public demo credentials, and the registration and session limitations.
 
 Codex checked valid and invalid sign-in and simulated registration against the live DummyJSON API. It ran the browser walkthrough in Chrome, TypeScript, ESLint, Expo's package compatibility check, and 14 Jest tests, and exported bundles for web, Android, and iOS. The session tests used mocked native storage. SecureStore behaviour on a physical device or emulator remains unverified.
+
+## Phase 3 — 24 November 2026
+
+Codex checked the official REST Countries service and verified Countrydrop's public v3.1 mirror. It added the country API slice, response validation, Home search and region filters, reusable country components, and the Details screen. It also documented the mirror's snapshot and the app's React Navigation entry point.
+
+Codex ran TypeScript, ESLint, Expo's dependency compatibility check, and 21 Jest tests. It verified the live list and Sri Lanka detail in Chrome, plus search, navigation, login, logout, refresh, and controlled loading, retry, missing-data, empty, and image-failure cases. Expo exported bundles for web, Android, and iOS. Native runtime behaviour and the native pull-to-refresh gesture remain unverified.
