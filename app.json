@@ -7,6 +7,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "plugins": ["expo-secure-store"],
     "ios": {
       "bundleIdentifier": "lk.ac.uom.globego234108c",
       "supportsTablet": true
