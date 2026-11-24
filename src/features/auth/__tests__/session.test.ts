@@ -8,6 +8,10 @@ import { endSession, restoreSession } from '../sessionActions';
 import { readSession, saveSession } from '../sessionStorage';
 
 jest.mock('react-native', () => ({ Platform: { OS: 'android' } }));
+jest.mock('@react-native-async-storage/async-storage', () => ({
+  getItem: jest.fn(async () => null),
+  setItem: jest.fn(async () => undefined),
+}));
 jest.mock('expo-secure-store', () => ({
   getItemAsync: jest.fn(),
   setItemAsync: jest.fn(),
