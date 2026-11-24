@@ -10,6 +10,9 @@ export const colors = {
   muted: '#496865',
   danger: '#A12732',
   dangerSurface: '#FFF1F2',
+  deepTeal: '#064D47',
+  heroText: '#E0F3EF',
+  softBorder: '#D9E8E4',
 } as const;
 
 export const typography = {
@@ -19,6 +22,7 @@ export const typography = {
   copy: { fontSize: 16, lineHeight: 24, fontWeight: '400' },
   label: { fontSize: 15, fontWeight: '600' },
   caption: { fontSize: 14, lineHeight: 20, fontWeight: '400' },
+  section: { fontSize: 20, fontWeight: '700' },
 } as const;
 
 export const spacing = {
@@ -31,3 +35,11 @@ export const spacing = {
 
 export const radius = { control: 12, panel: 24 } as const;
 export const touchTarget = 48;
+export const pageMaxWidth = 720;
+export const cardShadow = {
+  shadowColor: colors.heading,
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.07,
+  shadowRadius: 6,
+  elevation: 1,
+} as const;
