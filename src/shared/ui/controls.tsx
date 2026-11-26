@@ -36,7 +36,7 @@ export function Button({ label, onPress, icon, busy = false, disabled = false, k
   );
 }
 
-export function StatusMessage({ text, error = false }: { text: string; error?: boolean }) {
+export function StatusMessage({ text, error = false, icon }: { text: string; error?: boolean; icon?: FeatherName }) {
   const foreground = error ? colors.danger : colors.heading;
   return (
     <View
@@ -44,7 +44,7 @@ export function StatusMessage({ text, error = false }: { text: string; error?: b
       accessibilityLiveRegion={error ? 'assertive' : 'polite'}
       style={[styles.notice, { backgroundColor: error ? colors.dangerSurface : colors.tint }]}
     >
-      <Feather name={error ? 'alert-circle' : 'info'} size={18} color={foreground} />
+      <Feather name={icon ?? (error ? 'alert-circle' : 'info')} size={18} color={foreground} />
       <Text style={[styles.noticeText, { color: foreground }]}>{text}</Text>
     </View>
   );

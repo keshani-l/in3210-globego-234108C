@@ -8,6 +8,7 @@ import { useAppSelector } from '../../app/store';
 import { colors, pageMaxWidth, radius, spacing, typography } from '../../shared/theme/tokens';
 import { CountryCard } from '../countries/CountryCard';
 import { CountryLoading, CountryMessage } from '../countries/CountryState';
+import { OfflineCountryStatus } from '../countries/OfflineCountryStatus';
 import { FavouriteHeart } from './FavouriteHeart';
 import { FavouriteStorageNotice } from './FavouriteStorageNotice';
 import { selectFavouriteCount, selectSavedCountries } from './favouritesSlice';
@@ -16,6 +17,7 @@ export function FavouritesScreen({ navigation }: BottomTabScreenProps<AppTabs, '
   const countries = useAppSelector(selectSavedCountries);
   const count = useAppSelector(selectFavouriteCount);
   const status = useAppSelector((state) => state.favourites.status);
+  const connection = useAppSelector((state) => state.connectivity.status);
 
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={styles.screen}>
@@ -41,6 +43,7 @@ export function FavouritesScreen({ navigation }: BottomTabScreenProps<AppTabs, '
               <Text accessibilityRole="header" style={styles.title}>My Favourites</Text>
               <Text style={styles.subtitle}>Your personal travel wishlist</Text>
             </View>
+            <OfflineCountryStatus status={connection} hasData={count > 0} />
             <FavouriteStorageNotice />
             {status === 'ready' && (
               <Text accessibilityLiveRegion="polite" style={styles.count}>

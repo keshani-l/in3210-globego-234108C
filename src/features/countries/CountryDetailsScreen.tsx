@@ -7,13 +7,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { HomeRoutes } from '../../app/navigation/routes';
 import { useAppDispatch, useAppSelector } from '../../app/store';
 import { cardShadow, colors, pageMaxWidth, radius, spacing, typography } from '../../shared/theme/tokens';
-import { Button, type FeatherName } from '../../shared/ui/controls';
+import { Button, StatusMessage, type FeatherName } from '../../shared/ui/controls';
 import { FavouriteStorageNotice } from '../favourites/FavouriteStorageNotice';
-import { captureFavouriteDetails, selectSavedCountry, toggleFavourite } from '../favourites/favouritesSlice';
+import { captureFavouriteDetails, toggleFavourite, type FavouriteCountry } from '../favourites/favouritesSlice';
 import { formatCountryNumber } from './countryDiscovery';
-import { useGetCountryQuery } from './countriesApi';
 import { CountryLoading, CountryMessage } from './CountryState';
 import { FlagImage } from './FlagImage';
+import { OfflineCountryStatus } from './OfflineCountryStatus';
+import { useOfflineCountryDetails } from './useOfflineCountries';
 
 function CountryInfoCard({ title, icon, children }: PropsWithChildren<{ title: string; icon: FeatherName }>) {
   return (
@@ -38,70 +39,82 @@ function InfoRow({ label, value }: { label: string; value?: string }) {
 
 export function CountryDetailsScreen({ route }: NativeStackScreenProps<HomeRoutes, 'CountryDetails'>) {
   const { countryId } = route.params;
-  const { currentData: country, isError, isFetching, refetch } = useGetCountryQuery(countryId);
+  const { country: snapshot, fullDetails, hasFullDetails, saved, updatedAt, status, pauseRequests, ready, isError, notFound, refresh } =
+    useOfflineCountryDetails(countryId);
   const dispatch = useAppDispatch();
-  const saved = useAppSelector((state) => selectSavedCountry(state, countryId));
   const favouritesStatus = useAppSelector((state) => state.favourites.status);
 
   useEffect(() => {
-    if (country && saved && saved.languages === undefined) dispatch(captureFavouriteDetails(country));
-  }, [country, dispatch, saved]);
+    if (fullDetails && saved && saved.languages === undefined) dispatch(captureFavouriteDetails(fullDetails));
+  }, [fullDetails, dispatch, saved]);
 
   return (
     <SafeAreaView edges={['left', 'right']} style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
         <FavouriteStorageNotice />
-        {isError && !isFetching ? (
-          <CountryMessage
-            error
-            icon="alert-circle"
-            title="Country details couldn’t load"
-            description="Check your connection and try again."
-            action={{ label: 'Retry', onPress: () => { void refetch(); } }}
-          />
-        ) : isFetching || country === undefined ? (
-          <CountryLoading label="Loading country details…" />
-        ) : country === null ? (
-          <CountryMessage icon="map-pin" title="Country not found" description="Go back to Home to choose another country." />
-        ) : (
+        <OfflineCountryStatus status={status} hasData={snapshot !== undefined} updatedAt={updatedAt} />
+        {(isError || notFound) && snapshot && (
+          <StatusMessage text="Couldn’t refresh country details. Showing saved information." error />
+        )}
+        {snapshot ? (
           <>
-            <View style={styles.hero}>
-              <FlagImage name={country.name} uri={country.flagUrl} style={styles.flag} />
-              <View style={styles.heroCopy}>
-                <Text accessibilityRole="header" style={styles.title}>{country.name}</Text>
-                {country.officialName && <Text style={styles.official}>{country.officialName}</Text>}
-              </View>
-            </View>
+            {!hasFullDetails && <StatusMessage text="Only a country summary is available. Missing details are marked as unavailable." />}
             <Button
               label={favouritesStatus === 'loading' ? 'Restoring favourites…' : saved ? 'Remove from Favourites' : 'Add to Favourites'}
               kind={saved ? 'secondary' : 'primary'}
               icon="heart"
               busy={favouritesStatus === 'loading'}
               disabled={favouritesStatus === 'loadError'}
-              onPress={() => dispatch(toggleFavourite(country))}
+              onPress={() => dispatch(toggleFavourite(snapshot))}
             />
-            <CountryInfoCard title="At a glance" icon="globe">
-              <InfoRow label="Country code" value={country.id} />
-              <InfoRow label={country.capitals.length > 1 ? 'Capital cities' : 'Capital city'} value={country.capitals.join(', ')} />
-              <InfoRow label="Region" value={country.region} />
-              <InfoRow label="Subregion" value={country.subregion} />
-              <InfoRow label="Independent" value={country.independent === undefined ? undefined : country.independent ? 'Yes' : 'No'} />
-            </CountryInfoCard>
-            <CountryInfoCard title="Population and area" icon="bar-chart-2">
-              <InfoRow label="Population" value={formatCountryNumber(country.population)} />
-              <InfoRow label="Area" value={country.area === undefined ? undefined : `${formatCountryNumber(country.area)} km²`} />
-            </CountryInfoCard>
-            <CountryInfoCard title="Travel information" icon="briefcase">
-              <InfoRow label="Languages" value={country.languages.join(', ')} />
-              <InfoRow label="Currencies" value={country.currencies.map(({ code, name, symbol }) =>
-                [name, code, symbol ? `(${symbol})` : undefined].filter(Boolean).join(' '),
-              ).join(', ')} />
-              <InfoRow label="Time zones" value={country.timeZones.join(', ')} />
-            </CountryInfoCard>
+            {(isError || notFound) && refresh && <Button kind="secondary" label="Retry" onPress={refresh} />}
+            <DetailsContent country={snapshot} />
           </>
+        ) : notFound ? (
+          <CountryMessage icon="map-pin" title="Country not found" description="Go back to Home to choose another country." />
+        ) : !ready ? (
+          <CountryLoading label="Checking for saved country details…" />
+        ) : pauseRequests ? (
+          <CountryMessage icon="wifi-off" title="Country details aren’t saved yet" description="Reconnect to download details for this country." />
+        ) : isError ? (
+          <CountryMessage error icon="alert-circle" title="Country details couldn’t load" description="Try downloading the country details again." action={refresh && { label: 'Retry', onPress: refresh }} />
+        ) : (
+          <CountryLoading label="Loading country details…" />
         )}
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+function DetailsContent({ country }: { country: FavouriteCountry }) {
+  return (
+    <>
+    <View style={styles.hero}>
+      <FlagImage name={country.name} uri={country.flagUrl} style={styles.flag} />
+      <View style={styles.heroCopy}>
+        <Text accessibilityRole="header" style={styles.title}>{country.name}</Text>
+        {country.officialName && <Text style={styles.official}>{country.officialName}</Text>}
+      </View>
+    </View>
+    <CountryInfoCard title="At a glance" icon="globe">
+      <InfoRow label="Country code" value={country.id} />
+      <InfoRow label={country.capitals.length > 1 ? 'Capital cities' : 'Capital city'} value={country.capitals.join(', ')} />
+      <InfoRow label="Region" value={country.region} />
+      <InfoRow label="Subregion" value={country.subregion} />
+      <InfoRow label="Independent" value={country.independent === undefined ? undefined : country.independent ? 'Yes' : 'No'} />
+    </CountryInfoCard>
+    <CountryInfoCard title="Population and area" icon="bar-chart-2">
+      <InfoRow label="Population" value={formatCountryNumber(country.population)} />
+      <InfoRow label="Area" value={country.area === undefined ? undefined : `${formatCountryNumber(country.area)} km²`} />
+    </CountryInfoCard>
+    <CountryInfoCard title="Travel information" icon="briefcase">
+      <InfoRow label="Languages" value={country.languages?.join(', ')} />
+      <InfoRow label="Currencies" value={country.currencies?.map(({ code, name, symbol }) =>
+        [name, code, symbol ? `(${symbol})` : undefined].filter(Boolean).join(' '),
+      ).join(', ')} />
+      <InfoRow label="Time zones" value={country.timeZones?.join(', ')} />
+    </CountryInfoCard>
+    </>
   );
 }
 

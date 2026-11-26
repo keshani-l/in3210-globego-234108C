@@ -2,9 +2,9 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
 export type ConnectionStatus = 'unknown' | 'online' | 'offline';
 
-export function connectionStatus(state: { isConnected: boolean | null; isInternetReachable: boolean | null }): ConnectionStatus {
-  if (state.isConnected === false || state.isInternetReachable === false) return 'offline';
-  if (state.isConnected === true || state.isInternetReachable === true) return 'online';
+export function connectionStatus(isConnected: boolean | null): ConnectionStatus {
+  if (isConnected === false) return 'offline';
+  if (isConnected === true) return 'online';
   return 'unknown';
 }
 

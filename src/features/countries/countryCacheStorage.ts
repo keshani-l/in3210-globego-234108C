@@ -15,7 +15,7 @@ const pendingWrites = new Map<string, Promise<void>>();
 
 async function read<T>(key: string, data: z.ZodType<T>): Promise<CacheEntry<T> | null> {
   try {
-    await pendingWrites.get(key);
+    await pendingWrites.get(key)?.catch(() => {});
     const raw = await AsyncStorage.getItem(key);
     if (raw === null) return null;
     const parsed = z.object({ version: z.literal(1), updatedAt: z.number().int().positive(), data })

@@ -20,7 +20,7 @@ export function useOfflineCountryList() {
     pauseRequests,
     ready,
     isFetching: query.isFetching,
-    isError: query.isError,
+    isError: !pauseRequests && query.isError,
     refresh: query.isUninitialized || pauseRequests ? undefined : () => { void query.refetch(); },
   };
 }
@@ -53,9 +53,8 @@ export function useOfflineCountryDetails(countryId: string) {
     status,
     pauseRequests,
     ready,
-    isFetching: query.isFetching,
-    isError: query.isError,
-    notFound: !validCode || query.currentData === null,
+    isError: !pauseRequests && query.isError,
+    notFound: !validCode || (!pauseRequests && query.currentData === null),
     refresh: query.isUninitialized || pauseRequests ? undefined : () => { void query.refetch(); },
   };
 }

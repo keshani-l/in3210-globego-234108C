@@ -14,18 +14,18 @@ import { CountryCard } from './CountryCard';
 import { CountryRegionFilter, CountrySearchBar } from './CountryFilters';
 import { CountryLoading, CountryMessage } from './CountryState';
 import { filterCountries, type RegionFilter } from './countryDiscovery';
-import { useGetCountriesQuery } from './countriesApi';
+import { OfflineCountryStatus } from './OfflineCountryStatus';
+import { useOfflineCountryList } from './useOfflineCountries';
 
 export function HomeScreen({ navigation }: NativeStackScreenProps<HomeRoutes, 'Home'>) {
   const auth = useAppSelector((state) => state.auth);
   const [search, setSearch] = useState('');
   const [region, setRegion] = useState<RegionFilter>('All');
-  const { data, isFetching, isError, refetch } = useGetCountriesQuery(undefined, { skip: auth.status !== 'signedIn' });
+  const { data, updatedAt, status, pauseRequests, ready, isFetching, isError, refresh } = useOfflineCountryList();
   const countries = useMemo(() => filterCountries(data ?? [], search, region), [data, search, region]);
 
   if (auth.status !== 'signedIn') return null;
 
-  const refresh = () => { void refetch(); };
   const clearFilters = () => {
     setSearch('');
     setRegion('All');
@@ -62,6 +62,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<HomeRoutes, 'H
               <Text accessibilityRole="header" style={styles.title}>Explore the World</Text>
               <Text style={styles.heroCopy}>Pick a region or search for a capital to discover your next destination.</Text>
             </View>
+            <OfflineCountryStatus status={status} hasData={data !== undefined} updatedAt={updatedAt} />
             <CountrySearchBar search={search} onChange={setSearch} />
             <CountryRegionFilter region={region} onChange={setRegion} />
             <FavouriteStorageNotice />
@@ -71,13 +72,13 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<HomeRoutes, 'H
                   <Text accessibilityLiveRegion="polite" style={styles.count}>
                     {countries.length} {countries.length === 1 ? 'country' : 'countries'}
                   </Text>
-                  <Button
+                  {refresh && <Button
                     kind="secondary"
                     label={isFetching ? 'Refreshing…' : 'Refresh'}
                     icon="refresh-cw"
                     busy={isFetching}
                     onPress={refresh}
-                  />
+                  />}
                 </View>
                 {isError && <StatusMessage error text="Refresh failed. Showing the last countries loaded. Try refreshing again." />}
               </>
@@ -85,13 +86,15 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<HomeRoutes, 'H
           </View>
         )}
         ListEmptyComponent={
-          data === undefined
-            ? (isError && !isFetching
-              ? <CountryMessage error icon="alert-circle" title="Countries couldn’t load" description="Check your connection and try again." action={{ label: 'Retry', onPress: refresh }} />
-              : <CountryLoading label="Loading countries…" />)
-            : (data.length === 0
-              ? <CountryMessage icon="globe" title="No countries available" description="Refresh to check for countries again." />
-              : <CountryMessage icon="search" title="No matching countries" description="Try another country name, capital, or region." action={{ label: 'Clear filters', onPress: clearFilters }} />)
+          data !== undefined
+            ? <CountryMessage icon="search" title="No matching countries" description="Try another country name, capital, or region." action={{ label: 'Clear filters', onPress: clearFilters }} />
+            : !ready
+              ? <CountryLoading label="Checking for saved countries…" />
+              : pauseRequests
+                ? <CountryMessage icon="wifi-off" title="No saved countries yet" description="Connect to the internet once to download countries for offline browsing." />
+                : isError && !isFetching
+                  ? <CountryMessage error icon="alert-circle" title="Countries couldn’t load" description="Try downloading the country list again." action={refresh && { label: 'Retry', onPress: refresh }} />
+                  : <CountryLoading label="Loading countries…" />
         }
       />
     </SafeAreaView>
