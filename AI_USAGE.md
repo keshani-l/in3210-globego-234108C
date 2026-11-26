@@ -19,3 +19,9 @@ Codex checked valid and invalid sign-in and simulated registration against the l
 Codex checked the official REST Countries service and verified Countrydrop's public v3.1 mirror. It added the country API slice, response validation, Home search and region filters, reusable country components, and the Details screen. It also documented the mirror's snapshot and the app's React Navigation entry point.
 
 Codex ran TypeScript, ESLint, Expo's dependency compatibility check, and 21 Jest tests. It verified the live list and Sri Lanka detail in Chrome, plus search, navigation, login, logout, refresh, and controlled loading, retry, missing-data, empty, and image-failure cases. Expo exported bundles for web, Android, and iOS. Native runtime behaviour and the native pull-to-refresh gesture remain unverified.
+
+## Phase 4 — 26 November 2026
+
+Codex implemented and reviewed the Redux favourites slice, user-specific AsyncStorage persistence, the Home and Details controls, and the wishlist screen. It added 10 tests covering favourites, storage recovery, account isolation, and overlapping reads and writes.
+
+Codex ran TypeScript, ESLint, Expo's compatibility check, and all 31 Jest tests. It exported web, Android, and iOS bundles. A Chrome walkthrough used two live DummyJSON demo accounts to verify wishlist isolation, screen synchronization, the empty state, browser refresh and re-login, and saved cards with Countrydrop requests blocked. Native runtime persistence remains unverified.

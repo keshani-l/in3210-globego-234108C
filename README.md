@@ -7,7 +7,7 @@ React Native country discovery app with offline-first functionality for IN3210 A
 
 IN3210 Mobile Applications Development, University of Moratuwa. Index number 234108C.
 
-Phase 3 adds live country discovery and country details to the authentication and navigation from Phase 2. Favourites is a preview for Phase 4.
+Phase 4 adds a personal travel wishlist that saves countries from Home and Country Details.
 
 ## Run locally
 
@@ -50,6 +50,14 @@ The app uses Countrydrop, a public mirror of the legacy REST Countries v3.1 data
 | `GET /v3.1/all?fields=cca3,name,capital,region,flags,population` | Download the six fields used for discovery |
 | `GET /v3.1/alpha/{cca3}?fields=cca3,name,capital,region,flags,population,subregion,area,languages,currencies,timezones,independent` | Load one country's details, for example `LKA` |
 
+## Favourites and storage
+
+Tap the heart on a Home card or the Favourites button on Country Details. Both update the same Redux Toolkit slice, which uses the three-letter country code to prevent duplicates. The Favourites tab shows the saved count and cards, provides removal and Details navigation, and offers **Explore Countries** when the wishlist is empty.
+
+After sign-in, Redux listener middleware reads the active user's wishlist from a versioned AsyncStorage key based on that user's ID. Edits wait until loading finishes, then update Redux immediately and persist in order. Signing out clears the in-memory list. Signing in again restores that account's saved list. Read and write failures offer a retry, and readable entries are recovered from partially corrupted records.
+
+AsyncStorage holds country summaries and any details collected for saved countries. It is unencrypted and suitable for this non-sensitive data. Authentication tokens remain in SecureStore on native devices, and web authentication remains in memory. Saved cards can show their stored text when Countrydrop is unavailable. Fresh country data, the Details screen, and uncached flag images still depend on network access. [Expo AsyncStorage](https://docs.expo.dev/versions/v58.0.0/sdk/async-storage/)
+
 ## Checks
 
 ```sh
@@ -57,6 +65,9 @@ npm run typecheck
 npm run lint
 npm test
 npx expo install --check
+npx expo export --platform all
 ```
 
-The Jest tests cover authentication validation, mocked SecureStore behaviour, country response transformation, search, filtering, and number formatting. To try country discovery, sign in as `emilys`, search for `Kotte`, choose Asia, and open Sri Lanka. To check a real mobile restart, sign in online, close the app, turn on airplane mode and reopen it before the token expires. Confirm that the Home screen opens, then sign out from Profile and reopen the app to confirm it starts on Login.
+All 31 Jest tests passed, including wishlist isolation, storage failure recovery, and overlapping reads and writes with mocked AsyncStorage. TypeScript, ESLint, and Expo dependency compatibility passed. Expo exported web, Android, and iOS bundles.
+
+In Chrome, two live DummyJSON accounts showed separate wishlists. The walkthrough verified the empty state, Explore Countries, changes across all three screens, browser refresh and re-login, and saved cards with Countrydrop requests blocked. Android and iOS runtime persistence still needs a device or emulator check.
