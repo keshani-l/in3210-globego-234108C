@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { authApi } from '../features/auth/authApi';
 import { authReducer } from '../features/auth/authSlice';
 import { countriesApi } from '../features/countries/countriesApi';
+import { countryCacheReducer } from '../features/countries/countryCacheSlice';
 import { createFavouritesPersistence } from '../features/favourites/favouritesPersistence';
 import { favouritesReducer } from '../features/favourites/favouritesSlice';
 
@@ -14,6 +15,7 @@ export const store = configureStore({
     auth: authReducer,
     [authApi.reducerPath]: authApi.reducer,
     [countriesApi.reducerPath]: countriesApi.reducer,
+    countryCache: countryCacheReducer,
     favourites: favouritesReducer,
   },
   middleware: (getDefaultMiddleware) => getDefaultMiddleware()
