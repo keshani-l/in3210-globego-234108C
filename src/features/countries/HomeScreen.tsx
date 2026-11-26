@@ -8,6 +8,8 @@ import type { HomeRoutes } from '../../app/navigation/routes';
 import { useAppSelector } from '../../app/store';
 import { colors, pageMaxWidth, radius, spacing, typography } from '../../shared/theme/tokens';
 import { Button, StatusMessage } from '../../shared/ui/controls';
+import { FavouriteHeart } from '../favourites/FavouriteHeart';
+import { FavouriteStorageNotice } from '../favourites/FavouriteStorageNotice';
 import { CountryCard } from './CountryCard';
 import { CountryRegionFilter, CountrySearchBar } from './CountryFilters';
 import { CountryLoading, CountryMessage } from './CountryState';
@@ -39,7 +41,11 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<HomeRoutes, 'H
         data={countries}
         keyExtractor={(country) => country.id}
         renderItem={({ item }) => (
-          <CountryCard country={item} onPress={() => navigation.navigate('CountryDetails', { countryId: item.id })} />
+          <CountryCard
+            country={item}
+            action={<FavouriteHeart country={item} />}
+            onPress={() => navigation.navigate('CountryDetails', { countryId: item.id })}
+          />
         )}
         ItemSeparatorComponent={CountryGap}
         initialNumToRender={10}
@@ -58,6 +64,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<HomeRoutes, 'H
             </View>
             <CountrySearchBar search={search} onChange={setSearch} />
             <CountryRegionFilter region={region} onChange={setRegion} />
+            <FavouriteStorageNotice />
             {data !== undefined && (
               <>
                 <View style={styles.results}>

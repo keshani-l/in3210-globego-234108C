@@ -11,20 +11,24 @@ type ButtonProps = {
   onPress: () => void;
   icon?: FeatherName;
   busy?: boolean;
+  disabled?: boolean;
   kind?: 'primary' | 'secondary';
 };
 
-export function Button({ label, onPress, icon, busy = false, kind = 'primary' }: ButtonProps) {
+export function Button({ label, onPress, icon, busy = false, disabled = false, kind = 'primary' }: ButtonProps) {
   const primary = kind === 'primary';
   const foreground = primary ? colors.onPrimary : colors.primary;
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
-      accessibilityState={{ busy, disabled: busy }}
-      disabled={busy}
+      accessibilityState={{ busy, disabled: busy || disabled }}
+      disabled={busy || disabled}
       onPress={onPress}
-      style={({ pressed }) => [styles.button, primary ? styles.primary : styles.secondary, pressed && styles.pressed]}
+      style={({ pressed }) => [
+        styles.button, primary ? styles.primary : styles.secondary, pressed && styles.pressed,
+        disabled && styles.disabled,
+      ]}
     >
       {busy ? <ActivityIndicator color={foreground} /> : icon && <Feather name={icon} size={18} color={foreground} />}
       <Text style={[typography.label, { color: foreground }]}>{label}</Text>
@@ -60,6 +64,7 @@ const styles = StyleSheet.create({
   primary: { backgroundColor: colors.primary },
   secondary: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 },
   pressed: { opacity: 0.78 },
+  disabled: { opacity: 0.5 },
   notice: { flexDirection: 'row', gap: spacing.small, padding: spacing.medium, borderRadius: radius.control },
   noticeText: { ...typography.caption, flex: 1 },
 });

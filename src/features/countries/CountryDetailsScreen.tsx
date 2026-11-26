@@ -1,12 +1,15 @@
 import Feather from '@expo/vector-icons/Feather';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { PropsWithChildren } from 'react';
+import { useEffect, type PropsWithChildren } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { HomeRoutes } from '../../app/navigation/routes';
+import { useAppDispatch, useAppSelector } from '../../app/store';
 import { cardShadow, colors, pageMaxWidth, radius, spacing, typography } from '../../shared/theme/tokens';
-import type { FeatherName } from '../../shared/ui/controls';
+import { Button, type FeatherName } from '../../shared/ui/controls';
+import { FavouriteStorageNotice } from '../favourites/FavouriteStorageNotice';
+import { captureFavouriteDetails, selectSavedCountry, toggleFavourite } from '../favourites/favouritesSlice';
 import { formatCountryNumber } from './countryDiscovery';
 import { useGetCountryQuery } from './countriesApi';
 import { CountryLoading, CountryMessage } from './CountryState';
@@ -36,10 +39,18 @@ function InfoRow({ label, value }: { label: string; value?: string }) {
 export function CountryDetailsScreen({ route }: NativeStackScreenProps<HomeRoutes, 'CountryDetails'>) {
   const { countryId } = route.params;
   const { currentData: country, isError, isFetching, refetch } = useGetCountryQuery(countryId);
+  const dispatch = useAppDispatch();
+  const saved = useAppSelector((state) => selectSavedCountry(state, countryId));
+  const favouritesStatus = useAppSelector((state) => state.favourites.status);
+
+  useEffect(() => {
+    if (country && saved && saved.languages === undefined) dispatch(captureFavouriteDetails(country));
+  }, [country, dispatch, saved]);
 
   return (
     <SafeAreaView edges={['left', 'right']} style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
+        <FavouriteStorageNotice />
         {isError && !isFetching ? (
           <CountryMessage
             error
@@ -61,6 +72,14 @@ export function CountryDetailsScreen({ route }: NativeStackScreenProps<HomeRoute
                 {country.officialName && <Text style={styles.official}>{country.officialName}</Text>}
               </View>
             </View>
+            <Button
+              label={favouritesStatus === 'loading' ? 'Restoring favourites…' : saved ? 'Remove from Favourites' : 'Add to Favourites'}
+              kind={saved ? 'secondary' : 'primary'}
+              icon="heart"
+              busy={favouritesStatus === 'loading'}
+              disabled={favouritesStatus === 'loadError'}
+              onPress={() => dispatch(toggleFavourite(country))}
+            />
             <CountryInfoCard title="At a glance" icon="globe">
               <InfoRow label="Country code" value={country.id} />
               <InfoRow label={country.capitals.length > 1 ? 'Capital cities' : 'Capital city'} value={country.capitals.join(', ')} />
