@@ -7,6 +7,7 @@ import { countriesApi } from '../features/countries/countriesApi';
 import { countryCacheReducer } from '../features/countries/countryCacheSlice';
 import { createFavouritesPersistence } from '../features/favourites/favouritesPersistence';
 import { favouritesReducer } from '../features/favourites/favouritesSlice';
+import { connectivityReducer } from './connectivity';
 
 const favouritesPersistence = createFavouritesPersistence();
 
@@ -16,6 +17,7 @@ export const store = configureStore({
     [authApi.reducerPath]: authApi.reducer,
     [countriesApi.reducerPath]: countriesApi.reducer,
     countryCache: countryCacheReducer,
+    connectivity: connectivityReducer,
     favourites: favouritesReducer,
   },
   middleware: (getDefaultMiddleware) => getDefaultMiddleware()
