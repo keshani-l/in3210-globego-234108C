@@ -25,3 +25,9 @@ Codex ran TypeScript, ESLint, Expo's dependency compatibility check, and 21 Jest
 Codex implemented and reviewed the Redux favourites slice, user-specific AsyncStorage persistence, the Home and Details controls, and the wishlist screen. It added 10 tests covering favourites, storage recovery, account isolation, and overlapping reads and writes.
 
 Codex ran TypeScript, ESLint, Expo's compatibility check, and all 31 Jest tests. It exported web, Android, and iOS bundles. A Chrome walkthrough used two live DummyJSON demo accounts to verify wishlist isolation, screen synchronization, the empty state, browser refresh and re-login, and saved cards with Countrydrop requests blocked. Native runtime persistence remains unverified.
+
+## Phase 5 — 26 November 2026
+
+Codex implemented and tested the versioned AsyncStorage country cache, connectivity detection, reconnect refresh, offline banner, and Home and Details fallbacks. It added six Jest tests and updated the README with the cache design and offline demo.
+
+Codex ran TypeScript, ESLint, Expo's dependency compatibility check, and all 37 Jest tests. Expo exported web, Android, and iOS bundles. Chrome network emulation verified offline browsing and wishlist changes, a single refresh each for Home and visible Details on reconnect, and first-use recovery. A separate Chrome reload and re-login with Countrydrop blocked verified cache persistence. Native runtime behaviour and offline SecureStore restoration were not tested on a device or emulator.

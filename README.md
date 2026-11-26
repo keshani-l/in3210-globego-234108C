@@ -7,7 +7,7 @@ React Native country discovery app with offline-first functionality for IN3210 A
 
 IN3210 Mobile Applications Development, University of Moratuwa. Index number 234108C.
 
-Phase 4 adds a personal travel wishlist that saves countries from Home and Country Details.
+Phase 5 lets signed-in users browse saved country information and manage their travel wishlist when they lose connectivity.
 
 ## Run locally
 
@@ -56,7 +56,21 @@ Tap the heart on a Home card or the Favourites button on Country Details. Both u
 
 After sign-in, Redux listener middleware reads the active user's wishlist from a versioned AsyncStorage key based on that user's ID. Edits wait until loading finishes, then update Redux immediately and persist in order. Signing out clears the in-memory list. Signing in again restores that account's saved list. Read and write failures offer a retry, and readable entries are recovered from partially corrupted records.
 
-AsyncStorage holds country summaries and any details collected for saved countries. It is unencrypted and suitable for this non-sensitive data. Authentication tokens remain in SecureStore on native devices, and web authentication remains in memory. Saved cards can show their stored text when Countrydrop is unavailable. Fresh country data, the Details screen, and uncached flag images still depend on network access. [Expo AsyncStorage](https://docs.expo.dev/versions/v58.0.0/sdk/async-storage/)
+AsyncStorage holds country summaries and any details collected for saved countries. It is unencrypted and suitable for this non-sensitive data. Authentication tokens remain in SecureStore on native devices, and web authentication remains in memory. Saved cards can show their stored text when Countrydrop is unavailable. [Expo AsyncStorage](https://docs.expo.dev/versions/v58.0.0/sdk/async-storage/)
+
+## Offline-first browsing
+
+- **Cache.** AsyncStorage keeps the full country list at `globego.countries.v1.list` and one record per viewed country at `globego.countries.v1.details.<code>`. Each record contains a schema version, the last successful fetch timestamp, and normalized country data. Home restores the list at startup, and Details restores its record when opened. Missing, corrupted, or incompatible records are treated as absent. Only validated responses replace previously saved data.
+- **Refresh.** Saved information remains visible while RTK Query refreshes it in the background. On native platforms, NetInfo reports connectivity. On web, the app listens for the browser’s online and offline events. A confirmed disconnect pauses country requests. On reconnect, Home and the visible Details screen resubscribe, and RTK Query deduplicates requests. A server failure leaves saved content and its timestamp available.
+- **What works offline.** Search, region filters, saved details, and wishlist edits work with the stored information. An unvisited country can show its summary from the list or wishlist, with missing fields marked unavailable. First-time offline use shows a message explaining how to download the list.
+- **Limits.** Downloading new data requires a connection. GlobeGo stores flag URLs and shows a fallback when an image cannot load. Native offline browsing requires an unexpired SecureStore session. A browser refresh ends the web session, so sign in online again to reopen the retained country cache.
+
+### Demonstrate offline browsing
+
+1. Sign in online with the demo account. Wait for Home's **Last updated** time and open **Sri Lanka** once to save its details.
+2. Keep the browser tab open. Switch Chrome DevTools Network to **Offline** and show the banner. On Home, choose **Asia** and search for **Kotte**.
+3. Open Sri Lanka again and show its cached languages. Add or remove a favourite. Open an unvisited country to show what a summary looks like offline.
+4. Restore the network while Details is visible. Show the banner disappearing, the missing details loading, and the update time changing.
 
 ## Checks
 
@@ -68,6 +82,6 @@ npx expo install --check
 npx expo export --platform all
 ```
 
-All 31 Jest tests passed, including wishlist isolation, storage failure recovery, and overlapping reads and writes with mocked AsyncStorage. TypeScript, ESLint, and Expo dependency compatibility passed. Expo exported web, Android, and iOS bundles.
+All 37 Jest tests passed, including the existing authentication, discovery, and favourites tests. TypeScript, ESLint, and Expo dependency compatibility passed. Expo exported web, Android, and iOS bundles.
 
-In Chrome, two live DummyJSON accounts showed separate wishlists. The walkthrough verified the empty state, Explore Countries, changes across all three screens, browser refresh and re-login, and saved cards with Countrydrop requests blocked. Android and iOS runtime persistence still needs a device or emulator check.
+Chrome verified offline search, filtering, cached Details, summary fallback, and wishlist changes under network emulation. The list and visible Details refreshed once each on reconnect. A separate reload and re-login with Countrydrop blocked restored the previous cache and favourites. Native runtime behaviour, including offline SecureStore session restoration, still needs a device or emulator check.
